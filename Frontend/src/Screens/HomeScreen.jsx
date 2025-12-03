@@ -34,7 +34,8 @@ export default function HomeScreen({ navigation }) {
 
   const fetchData = async () => {
     try {
-      const profileRes = await fetch(`${BASE_URL}/get_profile`);
+      const url = `${BASE_URL}/get_profile`;
+      const profileRes = await fetch(url);
       const profileData = await profileRes.json();
       const fetchedDueDate = profileData?.due_date;
       

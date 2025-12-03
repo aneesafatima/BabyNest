@@ -12,7 +12,7 @@ from routes.blood_pressure import bp_bp
 from routes.discharge import discharge_bp
 from agent.agent import get_agent
 
-app = Flask(__name__)
+app = Flask(__name__) #here flask instance is a wsgi application
 CORS(app)
 
 app.register_blueprint(appointments_bp)
@@ -62,7 +62,6 @@ def get_cache_status():
     try:
         user_id = request.args.get("user_id", "default")
         user_context = agent.get_user_context(user_id)
-        
         return jsonify({
             "cache_system": "event_driven",
             "cache_status": "active",
