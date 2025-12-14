@@ -5,16 +5,21 @@ import os
 import hashlib
 
 os.makedirs("db/chromadb", exist_ok=True)
-client = chromadb.PersistentClient(path="db/chromadb")
+client = chromadb.PersistentClient(path="db/chromadb") #this line means attach to the chromadb instance stored in db/chromadb directory
+# the above line does not create a new dir, it connects to the existing one.
 
 # Use default embedding function instead of sentence transformers
-collection = client.get_or_create_collection(
+guidelines_collection = client.get_or_create_collection(
     "pregnancy_guidelines",
     embedding_function=embedding_functions.DefaultEmbeddingFunction()
 )
 
-_update_vector_store_callback = None
+user_details_collection = client.get_or_create_collection(
+    "user_details",
+    embedding_function=embedding_functions.DefaultEmbeddingFunction()
+)
 
+_update_vector_store_callback = None
 
 def register_vector_store_updater(callback):
     global _update_vector_store_callback
@@ -29,15 +34,15 @@ def get_file_hash(path):
     with open(path, "rb") as f:
         return hashlib.md5(f.read()).hexdigest()
     
-def update_vector_store():
+def update_guildelines_in_vector_store():
     """Update the vector store with pregnancy guidelines."""
     try:
         # Load guidelines from JSON file
-        guidelines_file = os.path.join(os.path.dirname(__file__), "guidelines.json")
+        guidelines_file = os.path.join(os.path.dirname(__file__), "guidelines.json")#json file contains pregnancy guidelines data
         os.makedirs("db/chromadb", exist_ok=True)
 
         # Compare file hash to avoid unnecessary updates
-        hash_file = os.path.join("db/chromadb", "guidelines.hash")
+        hash_file = os.path.join("db/chromadb", "guidelines.hash")#this points to the hashed version of the guidelines.json file
         current_hash = get_file_hash(guidelines_file)
         previous_hash = None
 
@@ -54,30 +59,39 @@ def update_vector_store():
             f.write(current_hash)
 
         with open(guidelines_file, 'r', encoding='utf-8') as f:
-            guidelines = json.load(f)
+            guidelines = json.load(f)#this loads the JSON as a Python list/dict.
         
         # Clear existing data (only if collection has data)
         try:
-            count = collection.count()
+            count = guidelines_collection.count()
             if count > 0:
-                collection.delete(where={"source": {"$ne": "none"}})
+                guidelines_collection.delete(where={"source": {"$ne": "none"}})
         except Exception:
             pass
-        
+
+        #bug here 
+
+        documents, ids, metadatas = [], [], []
+
         # Add guidelines to vector store
         for i, guideline in enumerate(guidelines):
-            content = f"Week {guideline.get('week', 'Unknown')}: {guideline.get('content', '')}"
+            content = f"Week {guideline.get('week_range', 'Unknown')}: {guideline.get('title', '')}"
             metadata = {
-                "week": guideline.get('week', 'Unknown'),
-                "category": guideline.get('category', 'general'),
-                "source": guideline.get('source', 'government_guidelines')
+                "week": guideline.get('week_range', 'Unknown'),
+                "priority": guideline.get('priority', 'general'),
+                "source": ", ".join(guideline.get('organization', ['government_guidelines'])),
+                "purpose" : guideline.get('purpose', 'general')
             }
+
+            documents.append(content)
+            ids.append(f"guideline_{i}")
+            metadatas.append(metadata)
             
-            collection.add(
-                documents=[content],
-                metadatas=[metadata],
-                ids=[f"guideline_{i}"]
-            )
+        guidelines_collection.add(
+            documents=documents,
+            metadatas=metadatas,
+            ids=ids
+        )
         
         print(f"Vector store updated with {len(guidelines)} guidelines")
         return True
@@ -86,10 +100,27 @@ def update_vector_store():
         print(f"Error updating vector store: {e}")
         return False
 
+
+
+def update_user_details_in_vector_store(documents: list = None, ids: list = None, metadatas: list = None):
+    """Update user details in the vector store."""
+    if not documents or not ids or not metadatas:
+        print("No user detail documents to update.")
+        return
+    try:
+        user_details_collection.add(
+            documents=documents,
+            metadatas=metadatas,
+            ids=ids
+        )
+        print(f"Vector store updated with {len(documents)} user detail documents")
+    except Exception as e:
+        print(f"Error updating user details in vector store: {e}")
+
 def query_vector_store(query: str, n_results: int = 3):
     """Query the vector store for relevant guidelines."""
     try:
-        results = collection.query(
+        results = guidelines_collection.query(
             query_texts=[query],
             n_results=n_results
         )
@@ -101,4 +132,5 @@ def query_vector_store(query: str, n_results: int = 3):
     except Exception as e:
         print(f"Error querying vector store: {e}")
         return []
+
 

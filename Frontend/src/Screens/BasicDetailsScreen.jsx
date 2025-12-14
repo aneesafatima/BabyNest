@@ -62,8 +62,9 @@ export default function BasicDetailsScreen() {
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
-    console.log(BASE_URL)
-    const res = await fetch(`${BASE_URL}/set_profile`, {
+    const url = `${BASE_URL}/set_profile`;    
+    console.log("Fetching....")
+    const res = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({

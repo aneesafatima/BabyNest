@@ -26,17 +26,17 @@ app.register_blueprint(discharge_bp)
 
 @app.teardown_appcontext
 def teardown_db(exception):
-    close_db(exception)
+    close_db(exception) # this method is called every time a request-response cycle ends
 
 # Initialize agent with database path
 db_path = os.path.join(os.path.dirname(__file__), "db", "database.db")
 first_time_setup() # This needs to be called before initializing the agent
 
-agent = get_agent(db_path)
+agent = get_agent(db_path) # stores an instance of BabyNestAgent
 
 @app.route("/agent", methods=["POST"])
 def run_agent():
-    if not request.is_json:
+    if not request.is_json: #checks the content type header
         return jsonify({"error": "Invalid JSON format"}), 400
     
     data = request.get_json()

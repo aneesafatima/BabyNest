@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 
-export default function AllTasksScreen({ navigation, route }) {
+export default function AllTasksScreen({navigation, route}) {
   const [tasks, setTasks] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(route.params?.week || 1);
@@ -24,7 +24,8 @@ export default function AllTasksScreen({ navigation, route }) {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/get_tasks`);
+      const url = `${BASE_URL}/get_tasks`;
+      const response = await fetch(`${url}/get_tasks`);
       const data = await response.json();
       setTasks(data || []);
     } catch (error) {
@@ -39,7 +40,7 @@ export default function AllTasksScreen({ navigation, route }) {
     setRefreshing(false);
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = priority => {
     switch (priority) {
       case 'high':
         return '#FF6B6B';
@@ -52,52 +53,62 @@ export default function AllTasksScreen({ navigation, route }) {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     return status === 'completed' ? '#4CAF50' : '#FF9800';
   };
 
   const filteredTasks = tasks
     .filter(task => {
       // Filter by week
-      const weekMatch = task.starting_week <= currentWeek && task.ending_week >= currentWeek;
-      
+      const weekMatch =
+        task.starting_week <= currentWeek && task.ending_week >= currentWeek;
+
       // Filter by status
-      if (filter === 'pending') return weekMatch && task.task_status === 'pending';
-      if (filter === 'completed') return weekMatch && task.task_status === 'completed';
+      if (filter === 'pending')
+        return weekMatch && task.task_status === 'pending';
+      if (filter === 'completed')
+        return weekMatch && task.task_status === 'completed';
       return weekMatch;
     })
     .sort((a, b) => {
       // Sort by priority first, then by starting week
-      const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-      const priorityDiff = priorityOrder[b.task_priority] - priorityOrder[a.task_priority];
+      const priorityOrder = {high: 3, medium: 2, low: 1};
+      const priorityDiff =
+        priorityOrder[b.task_priority] - priorityOrder[a.task_priority];
       if (priorityDiff !== 0) return priorityDiff;
       return a.starting_week - b.starting_week;
     });
 
-  const renderTask = (task) => (
+  const renderTask = task => (
     <View key={task.id} style={styles.taskCard}>
       <View style={styles.taskHeader}>
         <Text style={styles.taskTitle}>{task.title}</Text>
         <View style={styles.taskBadges}>
-          <View style={[styles.badge, { backgroundColor: getPriorityColor(task.task_priority) }]}>
+          <View
+            style={[
+              styles.badge,
+              {backgroundColor: getPriorityColor(task.task_priority)},
+            ]}>
             <Text style={styles.badgeText}>{task.task_priority}</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: getStatusColor(task.task_status) }]}>
+          <View
+            style={[
+              styles.badge,
+              {backgroundColor: getStatusColor(task.task_status)},
+            ]}>
             <Text style={styles.badgeText}>{task.task_status}</Text>
           </View>
         </View>
       </View>
-      
-      <Text style={styles.taskContent}>
-        {task.content}
-      </Text>
-      
+
+      <Text style={styles.taskContent}>{task.content}</Text>
+
       <View style={styles.taskFooter}>
         <Text style={styles.taskWeeks}>
           Week {task.starting_week} - {task.ending_week}
         </Text>
         {task.isOptional && (
-          <View style={[styles.badge, { backgroundColor: '#9C27B0' }]}>
+          <View style={[styles.badge, {backgroundColor: '#9C27B0'}]}>
             <Text style={styles.badgeText}>Optional</Text>
           </View>
         )}
@@ -108,29 +119,49 @@ export default function AllTasksScreen({ navigation, route }) {
   const renderFilterButtons = () => (
     <View style={styles.filterContainer}>
       <TouchableOpacity
-        style={[styles.filterButton, filter === 'all' && styles.activeFilterButton]}
-        onPress={() => setFilter('all')}
-      >
-        <Text style={[styles.filterText, filter === 'all' && styles.activeFilterText]}>
+        style={[
+          styles.filterButton,
+          filter === 'all' && styles.activeFilterButton,
+        ]}
+        onPress={() => setFilter('all')}>
+        <Text
+          style={[
+            styles.filterText,
+            filter === 'all' && styles.activeFilterText,
+          ]}>
           All ({filteredTasks.length})
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
-        style={[styles.filterButton, filter === 'pending' && styles.activeFilterButton]}
-        onPress={() => setFilter('pending')}
-      >
-        <Text style={[styles.filterText, filter === 'pending' && styles.activeFilterText]}>
-          Pending ({filteredTasks.filter(t => t.task_status === 'pending').length})
+        style={[
+          styles.filterButton,
+          filter === 'pending' && styles.activeFilterButton,
+        ]}
+        onPress={() => setFilter('pending')}>
+        <Text
+          style={[
+            styles.filterText,
+            filter === 'pending' && styles.activeFilterText,
+          ]}>
+          Pending (
+          {filteredTasks.filter(t => t.task_status === 'pending').length})
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
-        style={[styles.filterButton, filter === 'completed' && styles.activeFilterButton]}
-        onPress={() => setFilter('completed')}
-      >
-        <Text style={[styles.filterText, filter === 'completed' && styles.activeFilterText]}>
-          Completed ({filteredTasks.filter(t => t.task_status === 'completed').length})
+        style={[
+          styles.filterButton,
+          filter === 'completed' && styles.activeFilterButton,
+        ]}
+        onPress={() => setFilter('completed')}>
+        <Text
+          style={[
+            styles.filterText,
+            filter === 'completed' && styles.activeFilterText,
+          ]}>
+          Completed (
+          {filteredTasks.filter(t => t.task_status === 'completed').length})
         </Text>
       </TouchableOpacity>
     </View>
@@ -153,19 +184,24 @@ export default function AllTasksScreen({ navigation, route }) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* Week Selector */}
         <View style={styles.weekSelector}>
           <Text style={styles.weekLabel}>Select Week:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {Array.from({ length: 40 }, (_, i) => i + 1).map((week) => (
+            {Array.from({length: 40}, (_, i) => i + 1).map(week => (
               <TouchableOpacity
                 key={week}
-                style={[styles.weekButton, currentWeek === week && styles.activeWeekButton]}
-                onPress={() => setCurrentWeek(week)}
-              >
-                <Text style={[styles.weekButtonText, currentWeek === week && styles.activeWeekButtonText]}>
+                style={[
+                  styles.weekButton,
+                  currentWeek === week && styles.activeWeekButton,
+                ]}
+                onPress={() => setCurrentWeek(week)}>
+                <Text
+                  style={[
+                    styles.weekButtonText,
+                    currentWeek === week && styles.activeWeekButtonText,
+                  ]}>
                   {week}
                 </Text>
               </TouchableOpacity>
@@ -182,10 +218,9 @@ export default function AllTasksScreen({ navigation, route }) {
             <View style={styles.emptyState}>
               <Icon name="assignment" size={48} color="#ccc" />
               <Text style={styles.emptyText}>
-                {filter === 'all' 
+                {filter === 'all'
                   ? `No tasks for week ${currentWeek}`
-                  : `No ${filter} tasks for week ${currentWeek}`
-                }
+                  : `No ${filter} tasks for week ${currentWeek}`}
               </Text>
             </View>
           ) : (
@@ -341,4 +376,4 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
-}); 
+});

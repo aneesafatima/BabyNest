@@ -1,15 +1,19 @@
 import sqlite3
-from agent.vector_store import update_vector_store, query_vector_store
+from agent.vector_store import update_guildelines_in_vector_store, query_vector_store, update_user_details_in_vector_store
 
 def _format_data_for_embedding(db: sqlite3.Connection) -> tuple[list, list, list]:
     """
     Fetches structured data and formats it into individual documents for embedding.
     """
-    docs, ids, metadatas = [], [], []
+    docs, ids, metadatas = [], [], [] #tuple unpacking
 
     # Fetch and format appointments (using tuple indexing)
     appointments = db.execute("SELECT title, appointment_date, appointment_time, appointment_status FROM appointments ORDER BY appointment_date").fetchall()
+    #the above statement returns a cursor object
+    #fetchall() fetches all rows of a query result, returning a list of tuples; each tuple is a row
     for i, a in enumerate(appointments):
+        #The enumerate() function is a built-in Python function that allows you to 
+        #loop over an iterable and get an index for each item at the same time.
         doc_content = f"Appointment: {a[0]} on {a[1]} at {a[2]} (Status: {a[3]})"
         docs.append(doc_content)
         ids.append(f"appt_{i}")  # Use enumerate index for unique ID
@@ -46,8 +50,8 @@ def update_structured_context_in_vector_store():
         
         docs, ids, metadatas = _format_data_for_embedding(db)
         
-        # Update ChromaDB with the latest data
-        update_vector_store(documents=docs, ids=ids, metadatas=metadatas)
+        # Update ChromaDB with the latest user data
+        update_user_details_in_vector_store(docs,ids,metadatas)
         
     except Exception as e:
         print(f"Error updating structured context in vector store: {e}")
@@ -80,7 +84,7 @@ def initialize_knowledge_base():
     Call this once when the app starts.
     """
     try:
-        success = update_vector_store()
+        success = update_guildelines_in_vector_store()
         if success:
             print("Knowledge base initialized successfully")
         else:

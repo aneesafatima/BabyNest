@@ -36,6 +36,7 @@ class ContextCache:
             return
         
         for filename in os.listdir(self.cache_dir):
+            # the os.listdir lists all files/folders in the directory
             if filename.startswith("context_") and filename.endswith(".json"):
                 user_id = filename[8:-5]  # Remove "context_" prefix and ".json" suffix
                 file_path = os.path.join(self.cache_dir, filename)
@@ -45,10 +46,13 @@ class ContextCache:
                         cache_data = json.load(f)
                         self.memory_cache[user_id] = cache_data
                 except (json.JSONDecodeError, FileNotFoundError):
+                    #to catch errors in the with block
                     continue
     
     def _save_cache(self, user_id: str, context_data: Dict[str, Any]):
         """Save context data to disk cache."""
+        #This method actualy creates the context cache file on disk for each user
+        #These are the files which we try to load in the _load_cache method
         file_path = self._get_cache_file_path(user_id)
         try:
             with open(file_path, 'w') as f:
@@ -68,7 +72,7 @@ class ContextCache:
                 SELECT lmp, cycleLength, periodLength, age, weight, user_location, dueDate
                 FROM profile ORDER BY id DESC LIMIT 1
             """)
-            profile = cursor.fetchone()
+            profile = cursor.fetchone() #gives one row or None if no data; now the cursor points to next row if there is any
             
             if not profile:
                 conn.close()
@@ -80,7 +84,7 @@ class ContextCache:
             if due_date:
                 due_date_obj = datetime.strptime(due_date, "%Y-%m-%d").date()
                 today = date.today()
-                delta = due_date_obj - today
+                delta = due_date_obj - today # subtracting two dates gives a timedelta (no. of days between them)
                 weeks_left = delta.days // 7
                 current_week = 40 - weeks_left
                 current_week = max(1, min(current_week, 40))
@@ -92,6 +96,7 @@ class ContextCache:
                 SELECT week_number, weight, note, created_at FROM weekly_weight 
                 ORDER BY week_number DESC LIMIT 4
             """)
+            
             weight_data = cursor.fetchall()
             
             cursor.execute("""
@@ -294,9 +299,11 @@ class ContextCache:
                     except (json.JSONDecodeError, FileNotFoundError):
                         pass
             
-            if not current_cache:
+            if not current_cache: #this is never triggered due to the presence of context_default file.
                 # If no cache exists, build full context
+                print("⚙️ No existing cache found, building full context...")
                 context_data = self._build_context()
+                print("✅ Full context built", context_data)
                 if context_data:
                     self.memory_cache[user_id] = context_data
                     self._save_cache(user_id, context_data)

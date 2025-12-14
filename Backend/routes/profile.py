@@ -20,8 +20,8 @@ profile_bp = Blueprint('profile', __name__)
 def set_profile():
     db = open_db()
     try:
-        data = request.json
-        lmp = data.get('lmp')
+        data = request.json # Get JSON body data from request
+        lmp = data.get('lmp') #last period date
         cycleLength = data.get('cycleLength')
         periodLength = data.get('periodLength')
         age = data.get('age')
@@ -30,6 +30,9 @@ def set_profile():
 
         if not lmp or not location:
             return jsonify({"error": "Last menstrual period and location are required"}), 400
+        #jsonify ensures the response is in json format
+        #sets the content-type header to application/json
+        #is compatitble with all flask versions
         
         due_date = calculate_due_date(lmp, cycleLength)
 

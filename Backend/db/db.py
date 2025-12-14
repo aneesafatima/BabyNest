@@ -7,6 +7,7 @@ SCHEMA_FILE = "schema.sql"
 
 def open_db():
     if "db" not in g:
+        print("db not in g, setting up first time")
         first_time_setup()
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
@@ -19,6 +20,7 @@ def close_db(e=None):
 
 def first_time_setup():
     if not os.path.exists(DATABASE) or os.stat(DATABASE).st_size == 0:
+        print("Setting up database for the first time")
         with sqlite3.connect(DATABASE) as db:
             with open(SCHEMA_FILE,"r") as f:
                 db.executescript(f.read())

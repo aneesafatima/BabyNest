@@ -7,13 +7,12 @@ from agent.intent import classify_intent
 from agent.llm import run_llm
 from agent.prompt import build_prompt
 from agent.cache import get_context_cache
-
 from agent.handlers.appointment import handle as handle_appointments
 from agent.handlers.weight import handle as handle_weight
 from agent.handlers.symptoms import handle as handle_symptoms
 from agent.handlers.guidelines import handle as handle_guidelines
 
-from agent.vector_store import register_vector_store_updater, update_vector_store
+from agent.vector_store import register_vector_store_updater, update_guildelines_in_vector_store
 
 dispatch_intent = {
     "appointments": handle_appointments,
@@ -24,11 +23,12 @@ dispatch_intent = {
 
 class BabyNestAgent:
     def __init__(self, db_path: str):
-        self.db_path = db_path
-        self.context_cache = get_context_cache(db_path)
+        self.db_path = db_path #path to sql database file, this is absolute path
+        self.context_cache = get_context_cache(db_path) #this returns an instance of ContextCache
         
         # Register embedding refresh
-        register_vector_store_updater(update_vector_store)
+        # This method is setting the update_guildelines_in_vector_store function as a callback to be called when embeddings IN VECTOR STORE need to be refreshed.
+        register_vector_store_updater(update_guildelines_in_vector_store)
     
     def get_user_context(self, user_id: str = "default"):
         """Get user context from cache."""
@@ -79,7 +79,7 @@ class BabyNestAgent:
         """Manually refresh cache and regenerate embeddings after database changes."""
         print("🔄 Manually refreshing cache and regenerating embeddings...")
         self.context_cache.invalidate_cache()
-        update_vector_store()
+        update_guildelines_in_vector_store()
     
     def get_cache_stats(self):
         """Get cache statistics for monitoring."""
@@ -92,11 +92,11 @@ class BabyNestAgent:
         print("🧹 Cache cleanup completed")
 
 # Global agent instance
-_agent_instance = None
+_agent_instance = None #here _ indicates private variable; meant to be used only within this module
 
 def get_agent(db_path: str) -> BabyNestAgent:
     """Get or create the global agent instance."""
-    global _agent_instance
+    global _agent_instance #reference the module-level variable
     if _agent_instance is None:
         _agent_instance = BabyNestAgent(db_path)
     return _agent_instance

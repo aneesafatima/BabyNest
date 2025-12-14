@@ -32,7 +32,7 @@ export default function HomeScreen({navigation}) {
 
   const fetchData = async () => {
     try {
-      const url = `${BASE_URL}/get_profile`;
+      let url = `${BASE_URL}/get_profile`;
       const profileRes = await fetch(url);
       const profileData = await profileRes.json();
       const fetchedDueDate = profileData?.due_date;
@@ -46,12 +46,14 @@ export default function HomeScreen({navigation}) {
         setCurrentBabySize(babySizes[calculatedWeek - 1]);
         scrollToWeek(calculatedWeek);
       }
-
-      const apptRes = await fetch(`${BASE_URL}/get_appointments`);
+      url = `${BASE_URL}/get_appointments`;
+      const apptRes = await fetch(url);
       const apptData = await apptRes.json();
       setAllAppointments(apptData || []);
 
-      const taskRes = await fetch(`${BASE_URL}/get_tasks`);
+      url = `${BASE_URL}/get_tasks`;
+
+      const taskRes = await fetch(url);
       const taskData = await taskRes.json();
       setAllTasks(taskData || []);
     } catch (error) {
