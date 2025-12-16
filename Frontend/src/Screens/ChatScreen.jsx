@@ -98,13 +98,18 @@ export default function ChatScreen() {
   };
   const [conversation, setConversation] = useState([]);
   const [availableGGUFs, setAvailableGGUFs] = useState([]);
+  //FOR AI MODEL DOWNLOAD PROGRESS
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  //FOR MESSAGE GENERATION STATE
   const [isGenerating, setIsGenerating] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [showCommandExamples, setShowCommandExamples] = useState(false); // New state for command examples
   const [useRAGMode, setUseRAGMode] = useState(true); // Toggle between RAG (robot) and Model (phone) mode
+
+  
   const commandExamplesHeight = useRef(new Animated.Value(0)).current; // Animated height
   const pulseAnimation = useRef(new Animated.Value(1)).current; // Pulse animation
   const deleteAnimation = useRef(new Animated.Value(0)).current; // Delete animation
