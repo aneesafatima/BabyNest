@@ -93,8 +93,9 @@ export default function BasicDetailsScreen() {
     setErrors(prev => ({...prev, country: ''}));
   };
 
-  return (
-    <ScrollView
+  return(
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
       contentContainerStyle={styles.scrollContainer}
       keyboardShouldPersistTaps="handled">
       <View style={styles.container}>
@@ -226,10 +227,15 @@ export default function BasicDetailsScreen() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+  </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {  
+  flex: 1,
+  backgroundColor: '#fff',
+  },
   scrollContainer: {
     flexGrow: 1,
     backgroundColor: '#fff',
