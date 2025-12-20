@@ -109,7 +109,7 @@ export default function ChatScreen() {
   const [showCommandExamples, setShowCommandExamples] = useState(false); // New state for command examples
   const [useRAGMode, setUseRAGMode] = useState(true); // Toggle between RAG (robot) and Model (phone) mode
 
-  
+
   const commandExamplesHeight = useRef(new Animated.Value(0)).current; // Animated height
   const pulseAnimation = useRef(new Animated.Value(1)).current; // Pulse animation
   const deleteAnimation = useRef(new Animated.Value(0)).current; // Delete animation
@@ -297,7 +297,8 @@ export default function ChatScreen() {
         } else {
         // Fallback to general chat if RAG doesn't understand
         try {
-          const agentResponse = await fetch(`${BASE_URL}/agent`, {
+          const url = `${BASE_URL}/agent`;
+          const agentResponse = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
