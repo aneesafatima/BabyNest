@@ -36,17 +36,17 @@ def set_profile():
         
         due_date = calculate_due_date(lmp, cycleLength)
 
-        db.execute('DELETE FROM profile')
-        db.execute(
+        db.execute('DELETE FROM profile') #removes every row in profile table
+        cursor = db.execute(
             'INSERT INTO profile (lmp, cycleLength, periodLength, age, weight, user_location, dueDate) VALUES (?, ?, ?, ?, ?, ?, ?)',
             (lmp, cycleLength, periodLength, age, weight, location, due_date)
-        )
-        db.commit()
+        ) # here cursor acts like the result/receipt of the query we just ran
+        db.commit() # this actually saves the changes to the database. does not return anything
 
         # Update cache after database update
         db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "database.db")
         agent = get_agent(db_path)
-        agent.update_cache(data_type="profile", operation="create")
+        agent.update_cache(user_id=cursor.lastrowid, data_type="profile", operation="create")
 
         return jsonify({"status": "success", "message": "Profile set successfully with due date","dueDate": due_date}), 200
     

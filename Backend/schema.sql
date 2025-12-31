@@ -86,6 +86,7 @@ INSERT INTO tasks (title, content, starting_week, ending_week, task_priority, is
 ('Final Checkups', 'Last medical assessments before labor.', 38, 40, 'high', FALSE,FALSE,'pending');
 
 DROP TABLE IF EXISTS profile;
+-- The above line means that if the table exists, just delete it. If it doesn't, don't throw an error
 
 CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

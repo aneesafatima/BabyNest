@@ -24,7 +24,7 @@ def log_weight():
        week = int(week)
        if week < 1 or week > 52:
            return jsonify({"error": "Week number must be between 1 and 52"}), 400
-    except (ValueError, TypeError):
+    except (ValueError, TypeError): #So Python allows tuples of exception classes in a single except.
        return jsonify({"error": "Week number must be a valid integer"}), 400
    
     # Validate weight

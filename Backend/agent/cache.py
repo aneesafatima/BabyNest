@@ -7,6 +7,9 @@ from datetime import datetime, date
 from typing import Dict, Optional, Any
 import hashlib
 
+
+
+
 class ContextCache:
     def __init__(self, db_path: str, cache_dir: str = "cache"):
         self.db_path = db_path
@@ -59,6 +62,28 @@ class ContextCache:
                 json.dump(context_data, f, indent=2, default=str)
         except Exception as e:
             print(f"Error saving cache for user {user_id}: {e}")
+
+    def _cache_handler(self, datatype:str, current_cache:dict) -> bool:
+    #for mutable objects, they are passed by refernce, so changes to currentCache inside this function will reflect outside as well.
+    #if you reassign currentCache to a new object, that won't reflect outside.
+    #which means that it will now create a new object in memory, and the outside reference will still point to the old object.
+        if not datatype or not current_cache:
+            return False
+        # Updating data based on datatype
+        valid_types = ['profile', 'weight', 'medicine', 'symptoms', 'blood_pressure', 'discharge']
+        # maybe have None?
+        if datatype not in valid_types:
+            return False
+        print(f"   🔄 Updating {datatype} data...")
+        data = self._get_specific_data(datatype)
+        if data:
+            if datatype == "profile":
+                current_cache.update(data)
+                print(f"   ✅ {datatype} data updated")
+            else:
+                current_cache["tracking_data"][datatype] = data
+                print(f"   ✅ {datatype} data updated: {len(data)} entries")
+            return True
     
     def _build_context(self) -> Dict[str, Any]:
         """Build context from database."""
@@ -67,11 +92,18 @@ class ContextCache:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
+            #A Cursor is an object used to execute SQL queries on an SQLite database. 
+            # It acts as a middleware between the SQLite database connection and the SQL commands. 
+            # It is created after establishing a connection to the SQLite database
+
+
             # Get profile data
             cursor.execute("""
                 SELECT lmp, cycleLength, periodLength, age, weight, user_location, dueDate
                 FROM profile ORDER BY id DESC LIMIT 1
-            """)
+            """) #returns the cursor object itself
+
+
             profile = cursor.fetchone() #gives one row or None if no data; now the cursor points to next row if there is any
             
             if not profile:
@@ -299,7 +331,7 @@ class ContextCache:
                     except (json.JSONDecodeError, FileNotFoundError):
                         pass
             
-            if not current_cache: #this is never triggered due to the presence of context_default file.
+            if data_type == "profile" and operation == "create": #this is never triggered due to the presence of context_default file.
                 # If no cache exists, build full context
                 print("⚙️ No existing cache found, building full context...")
                 context_data = self._build_context()
@@ -308,62 +340,14 @@ class ContextCache:
                     self.memory_cache[user_id] = context_data
                     self._save_cache(user_id, context_data)
                 return
-            
-            # Update specific parts based on data_type
-            if data_type == "profile" or data_type is None:
-                # Update profile data and recalculate current week
-                print(f"   🔄 Updating profile data...")
-                profile_data = self._get_specific_data("profile")
-                if profile_data:
-                    current_cache.update(profile_data)
-                    print(f"   ✅ Profile data updated")
-            
-            if data_type == "weight" or data_type is None:
-                # Update weight data
-                print(f"   🔄 Updating weight data...")
-                weight_data = self._get_specific_data("weight")
-                if weight_data is not None:
-                    current_cache["tracking_data"]["weight"] = weight_data
-                    print(f"   ✅ Weight data updated: {len(weight_data)} entries")
-            
-            if data_type == "medicine" or data_type is None:
-                # Update medicine data
-                print(f"   🔄 Updating medicine data...")
-                medicine_data = self._get_specific_data("medicine")
-                if medicine_data is not None:
-                    current_cache["tracking_data"]["medicine"] = medicine_data
-                    print(f"   ✅ Medicine data updated: {len(medicine_data)} entries")
-            
-            if data_type == "symptoms" or data_type is None:
-                # Update symptoms data
-                print(f"   🔄 Updating symptoms data...")
-                symptoms_data = self._get_specific_data("symptoms")
-                if symptoms_data is not None:
-                    current_cache["tracking_data"]["symptoms"] = symptoms_data
-                    print(f"   ✅ Symptoms data updated: {len(symptoms_data)} entries")
-            
-            if data_type == "blood_pressure" or data_type is None:
-                # Update blood pressure data
-                print(f"   🔄 Updating blood pressure data...")
-                bp_data = self._get_specific_data("blood_pressure")
-                if bp_data is not None:
-                    current_cache["tracking_data"]["blood_pressure"] = bp_data
-                    print(f"   ✅ Blood pressure data updated: {len(bp_data)} entries")
-            
-            if data_type == "discharge" or data_type is None:
-                # Update discharge data
-                print(f"   🔄 Updating discharge data...")
-                discharge_data = self._get_specific_data("discharge")
-                if discharge_data is not None:
-                    current_cache["tracking_data"]["discharge"] = discharge_data
-                    print(f"   ✅ Discharge data updated: {len(discharge_data)} entries")
-            
-            # Update timestamp
-            current_cache["last_updated"] = datetime.now().isoformat()
-            
-            # Save updated cache
-            self.memory_cache[user_id] = current_cache
-            self._save_cache(user_id, current_cache)
+
+            if operation == "update":
+                self._cache_handler(data_type, current_cache)
+                # Update timestamp
+                current_cache["last_updated"] = datetime.now().isoformat()
+                # Save updated cache
+                self.memory_cache[user_id] = current_cache
+                self._save_cache(user_id, current_cache)
             
             print(f"✅ Cache updated for user {user_id} - {data_type or 'all'} data refreshed")
             
@@ -480,6 +464,7 @@ class ContextCache:
 
     def _limit_tracking_data(self, data: list, data_type: str) -> list:
         """Limit tracking data to prevent excessive growth."""
+        #this is used for fields which are beig tracked over time like weight, medicine etc.
         if len(data) <= self.max_tracking_entries:
             return data
         
