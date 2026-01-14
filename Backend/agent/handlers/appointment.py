@@ -82,12 +82,14 @@ def parse_appointment_command(query: str):
     }
 
 def parse_date(date_str):
+
     """Parse date string to ISO format."""
     if not date_str:
         return None
     
     today = datetime.now()
     date_str_lower = date_str.lower()
+    allowed_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     
     if date_str_lower == 'today':
         return today.strftime('%Y-%m-%d')
@@ -95,6 +97,18 @@ def parse_date(date_str):
         return (today + timedelta(days=1)).strftime('%Y-%m-%d')
     elif date_str_lower == 'next week':
         return (today + timedelta(days=7)).strftime('%Y-%m-%d')
+    elif date_str_lower == 'next month':
+        month = today.month + 1 if today.month < 12 else 1
+        year = today.year if today.month < 12 else today.year + 1
+        return f"{year}-{month:02d}-{today.day:02d}"
+    elif date_str_lower in allowed_days:
+        # Handles next occurrence of the specified day
+        target_day = allowed_days.index(date_str_lower)
+        days_ahead = target_day - today.weekday()
+        if days_ahead <= 0:
+            days_ahead += 7
+        target_date = today + timedelta(days=days_ahead)
+        return target_date.strftime('%Y-%m-%d')
     
     # Try to parse as MM/DD or MM/DD/YYYY
     try:
@@ -114,7 +128,7 @@ def parse_date(date_str):
     
     # Try to parse as YYYY-MM-DD
     try:
-        datetime.strptime(date_str, '%Y-%m-%d')
+        datetime.strptime(date_str, '%Y-%m-%d') #just as a validation check; if it passes, return as is and if it fails, go to except (since it throws an error)
         return date_str
     except:
         pass
@@ -128,6 +142,8 @@ def parse_time(time_str):
     
     time_str_lower = time_str.lower()
     
+
+    #ADD TONIGHT
     time_map = {
         'morning': '09:00',
         'afternoon': '14:00',

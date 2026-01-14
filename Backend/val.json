@@ -1,0 +1,127 @@
+    [
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "need cardiology consult on 4th 2023 at 1:15pm",
+            "output": "title: Cardiology Consultation\nDate: 2023-XX-04\nTime: 1:15pm\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "book orthopedic appointment for 16th 2024 at sports medicine center",
+            "output": "title: Orthopedic Appointment\nDate: 2024-XX-16\nTime: None\nLocation: Sports Medicine Center"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "can u schedule my ct scan on 29th 2026 around noon",
+            "output": "title: CT Scan\nDate: 2026-XX-29\nTime: Noon\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "need gastro appointment on 7th 2025 at 9:45am",
+            "output": "title: Gastro Appointment\nDate: 2025-XX-07\nTime: 9:45am\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "please book my mammogram for 31st 2024 at breast center",
+            "output": "title: Mammogram\nDate: 2024-XX-31\nTime: None\nLocation: Breast Center"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "wanna do the hearing test on 13th 2023 in the evening",
+            "output": "title: Hearing Test\nDate: 2023-XX-13\nTime: Evening\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "schedule neurology visit for 24th 2026 at 3:30pm at neuro clinic",
+            "output": "title: Neurology Visit\nDate: 2026-XX-24\nTime: 3:30pm\nLocation: Neuro Clinic"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "book dental surgery on 2nd 2025 at dental hospital",
+            "output": "title: Dental Surgery\nDate: 2025-XX-02\nTime: None\nLocation: Dental Hospital"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "need endocrinology appointment on 18th 2024 at 11:15am",
+            "output": "title: Endocrinology Appointment\nDate: 2024-XX-18\nTime: 11:15am\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "damn gotta schedule my infusion on 26th 2023",
+            "output": "title: Infusion\nDate: 2023-XX-26\nTime: None\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "Book ultrasound for next Monday at 10am at City Hospital.",
+            "output": "title: Ultrasound Appointment\nDate: Next Monday\nTime: 10:00am\nLocation: City Hospital"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "Schedule a dental check-up on 16/08/2020 at 3pm at Smile Dental Clinic.",
+            "output": "title: Dental Check-up\nDate: 2020-08-16\nTime: 3:00pm\nLocation: Smile Dental Clinic"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "Set up a meeting with Dr. Smith on 14-09-2025 at 11am at Downtown Medical Center.",
+            "output": "title: Meeting with Dr. Smith\nDate: 2025-09-14\nTime: 11:00am\nLocation: Downtown Medical Center"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "Arrange a physical therapy session at 2025/07/10 at 2pm at Health First Clinic.",
+            "output": "title: Physical Therapy Session\nDate: 2025-07-10\nTime: 2:00pm\nLocation: Health First Clinic"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "Make an appointment for a flu shot on October 5th at 9am at Wellness Center.",
+            "output": "title: Flu Shot Appointment\nDate: XXXX-10-05\nTime: 9:00am\nLocation: Wellness Center"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "need xray of chest tommorow afternoon",
+            "output": "title: Chest X-ray\nDate: Tomorrow\nTime: Afternoon\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "consultation with dr brown sometime in the evening",
+            "output": "title: Consultation with Dr. Brown\nDate: None\nTime: Evening\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "diabetic checkup on 15 nov at 10 30",
+            "output": "title: Diabetic Checkup\nDate: XXXX-11-15\nTime: 10:30am\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "third trimester scan needed urgently",
+            "output": "title: Third Trimester Scan\nDate: None\nTime: None\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "book mri scan at radiology dept next week",
+            "output": "title: MRI Scan\nDate: Next week\nTime: None\nLocation: Radiology Department"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "placenta scan on the 7th at 2 in afternoon",
+            "output": "title: Placenta Scan\nDate: XXXX-XX-07\nTime: 2:00pm\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "have to get ecg done today",
+            "output": "title: ECG\nDate: Today\nTime: None\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "blood sugar test in morning on empty stomch",
+            "output": "title: Blood Sugar Test (Fasting)\nDate: None\nTime: Morning\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "gtt test for gestational diabetes on may 5",
+            "output": "title: GTT Test (Gestational Diabetes)\nDate: XXXX-05-05\nTime: None\nLocation: None"
+        },
+        {
+            "instruction": "Extract appointment details from the following text. Include title, date, time and location if mentioned.",
+            "input": "rheumatology appoitment at city medical sometime afternoon",
+            "output": "title: Rheumatology Appointment\nDate: None\nTime: Afternoon\nLocation: City Medical"
+        }
+    ]
