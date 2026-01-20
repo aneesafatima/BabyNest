@@ -11,9 +11,19 @@ from routes.weight import weight_bp
 from routes.blood_pressure import bp_bp
 from routes.discharge import discharge_bp
 from agent.agent import get_agent
+import argparse
+
+
+# To enable context-aware error handling
+parser = argparse.ArgumentParser(description="Run the Flask backend server.")
+parser.add_argument("--env", type=str, default="development", choices=["development", "production"])
+args = parser.parse_args()
+
 
 app = Flask(__name__)
 CORS(app)
+
+app.config['ENV'] = args.env # Set environment based on argument
 
 app.register_blueprint(appointments_bp)
 app.register_blueprint(tasks_bp)

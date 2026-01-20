@@ -4,17 +4,25 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agent.agent import get_agent
+from error_handling.handlers import handle_missing_field_error
+from error_handling.error_classes import MissingFieldError
 
 bp_bp = Blueprint('blood_pressure', __name__)
 
+@bp_bp.register_error_handler(MissingFieldError, handle_missing_field_error)
+
+
 # Create
 @bp_bp.route('/blood_pressure', methods=['POST'])
+
 def add_bp_log():
     data = request.get_json()
     required = ['week_number', 'systolic', 'diastolic', 'time']
 
-    if not all(field in data and data[field] for field in required):
-        return jsonify({"error": "Missing required fields"}), 400
+    missing = [field for field in required if field not in data]
+
+    if missing:
+        raise MissingFieldError(missing)
 
     db = open_db()
     db.execute(
