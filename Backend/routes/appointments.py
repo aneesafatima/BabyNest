@@ -2,13 +2,9 @@ import sqlite3
 from flask import Blueprint, jsonify, request
 from db.db import open_db, close_db
 from error_handling.handlers import handle_db_errors
+from error_handling.error_classes import MissingFieldError, NotFoundError
 
 appointments_bp = Blueprint('appointments', __name__)
-
-# @appointments_bp.teardown_request
-# def teardown_request(exception=None):
-#     close_db(exception)
-
 
 @appointments_bp.route('/get_appointments', methods=['GET'])
 @handle_db_errors
@@ -29,7 +25,7 @@ def get_appointment(appointment_id):
     
     appointment = db.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,)).fetchone()
     if not appointment:
-         return jsonify({"error": "Appointment not found"}), 404
+        raise NotFoundError(resource="Appointment entry", resource_id=appointment_id)
         
     return jsonify(dict(appointment)), 200
     
@@ -38,18 +34,15 @@ def get_appointment(appointment_id):
 @handle_db_errors
 def add_appointment():
     db = open_db()
-
-    data = request.json
-    title = data.get('title')
-    content = data.get('content')
-    appointment_date = data.get('appointment_date')
-    appointment_time = data.get('appointment_time')
-    appointment_location = data.get('appointment_location')
-    if not all([title, content, appointment_date, appointment_time, appointment_location]):
-        return jsonify({"error": "Missing required fields"}), 400
+    data = request.get_json()
+    required = ['title', 'content', 'appointment_date', 'appointment_time', 'appointment_location']
+    missing = [field for field in required if field not in data]
+    if missing:
+        raise MissingFieldError(missing)
+    
     db.execute(
         'INSERT INTO appointments (title, content, appointment_date, appointment_time, appointment_location, appointment_status) VALUES (?, ?, ?, ?, ?, ?)',
-        (title, content, appointment_date, appointment_time, appointment_location, 'pending')
+        (data["title"], data["content"], data["appointment_date"], data["appointment_time"], data["appointment_location"], 'pending')
     )
     db.commit()
     return jsonify({"status": "success", "message": "Appointment added successfully"}), 200
@@ -62,19 +55,16 @@ def update_appointment(appointment_id):
 
     existing_appointment = db.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,)).fetchone()
     if not existing_appointment:
-        return jsonify({"error": "Appointment not found"}), 404
-    data = request.json
-    title = data.get('title')
-    content = data.get('content')
-    appointment_date = data.get('appointment_date')
-    appointment_time = data.get('appointment_time')
-    appointment_location = data.get('appointment_location')
-    appointment_status = data.get('appointment_status', 'pending')
-    if not all([title, content, appointment_date, appointment_time, appointment_location]):
-        return jsonify({"error": "Missing required fields"}), 400
+       raise NotFoundError(resource="Appointment entry", resource_id=appointment_id)
+    data = request.get_json() #fix invalid json format checking
+    required = ['title', 'content', 'appointment_date', 'appointment_time', 'appointment_location']
+    missing = [field for field in required if field not in data]
+    if missing:
+        raise MissingFieldError(missing)
+    
     db.execute(
         'UPDATE appointments SET title = ?, content = ?, appointment_date = ?, appointment_time = ?, appointment_location = ?, appointment_status = ? WHERE id = ?',
-        (title, content, appointment_date, appointment_time, appointment_location, appointment_status, appointment_id)
+        (data["title"], data["content"], data["appointment_date"], data["appointment_time"], data["appointment_location"], data.get('appointment_status', 'pending'))
     )
     db.commit()
     return jsonify({"status": "success", "message": "Appointment updated successfully"}), 200
@@ -86,7 +76,7 @@ def delete_appointment(appointment_id):
     db = open_db()
     existing_appointment = db.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,)).fetchone()
     if not existing_appointment:
-        return jsonify({"error": "Appointment not found"}), 404
+        raise NotFoundError(resource="Appointment entry", resource_id=appointment_id)
     db.execute('DELETE FROM appointments WHERE id = ?', (appointment_id,))
     db.commit()
     return jsonify({"status": "success", "message": "Appointment deleted successfully"}), 200

@@ -10,6 +10,8 @@ from routes.symptoms import symptoms_bp
 from routes.weight import weight_bp
 from routes.blood_pressure import bp_bp
 from routes.discharge import discharge_bp
+from error_handling.handlers import handle_missing_field_error, handle_not_found_error
+from error_handling.error_classes import MissingFieldError, NotFoundError
 from agent.agent import get_agent
 import argparse
 
@@ -33,6 +35,9 @@ app.register_blueprint(symptoms_bp)
 app.register_blueprint(weight_bp)
 app.register_blueprint(bp_bp)
 app.register_blueprint(discharge_bp)
+
+app.register_error_handler(MissingFieldError, handle_missing_field_error)
+app.register_error_handler(NotFoundError, handle_not_found_error)
 
 @app.teardown_appcontext
 def teardown_db(exception):

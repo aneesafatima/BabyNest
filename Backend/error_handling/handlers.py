@@ -35,5 +35,18 @@ def handle_db_errors(f):
 
 def handle_missing_field_error(e):
     """Handle MissingFieldError exceptions."""
-    response = {"error": e.message}
+    mode = current_app.config.get('ENV', 'development')  # Default to development if not set
+    if( mode == 'development'):
+        response = {"error": e.message, "missing_fields": e.field_names}
+    else:
+        response = {"error": e.message}
+    return jsonify(response), e.status_code
+
+def handle_not_found_error(e):
+    """Handle NotFoundError exceptions."""
+    mode = current_app.config.get('ENV', 'development')  # Default to development if not set
+    if mode == 'development' and e.resource_id is not None:
+        response = {"error": f"{e.resource} with ID {e.resource_id} not found"}
+    else:
+        response = {"error": f"{e.resource} not found"}
     return jsonify(response), e.status_code

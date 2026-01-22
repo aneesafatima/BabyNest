@@ -1,20 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify,current_app
 from db.db import open_db
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agent.agent import get_agent
-from error_handling.handlers import handle_missing_field_error
-from error_handling.error_classes import MissingFieldError
+from error_handling.handlers import handle_db_errors
+from error_handling.error_classes import MissingFieldError, NotFoundError
+from utils import validate_bp_data
 
 bp_bp = Blueprint('blood_pressure', __name__)
 
-@bp_bp.register_error_handler(MissingFieldError, handle_missing_field_error)
-
-
 # Create
 @bp_bp.route('/blood_pressure', methods=['POST'])
-
+@handle_db_errors
 def add_bp_log():
     data = request.get_json()
     required = ['week_number', 'systolic', 'diastolic', 'time']
@@ -41,6 +39,7 @@ def add_bp_log():
 
 # Read all
 @bp_bp.route('/blood_pressure', methods=['GET'])
+@handle_db_errors
 def get_bp_logs():
     db = open_db()
     rows = db.execute('SELECT * FROM blood_pressure_logs ORDER BY created_at DESC').fetchall()
@@ -48,6 +47,7 @@ def get_bp_logs():
 
 # Read by week
 @bp_bp.route('/blood_pressure/<int:week>', methods=['GET'])
+@handle_db_errors
 def get_bp_logs_by_week(week):
     db = open_db()
     rows = db.execute('SELECT * FROM blood_pressure_logs WHERE week_number = ? ORDER BY created_at DESC', (week,)).fetchall()
@@ -55,31 +55,50 @@ def get_bp_logs_by_week(week):
 
 # Read by ID
 @bp_bp.route('/blood_pressure/<int:id>', methods=['GET'])
+@handle_db_errors
 def get_bp_log(id):
     db = open_db()
     entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
     if not entry:
-        return jsonify({"error": "Entry not found"}), 404
+        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
     return jsonify(dict(entry)), 200
 
 # Update
 @bp_bp.route('/blood_pressure/<int:id>', methods=['PUT'])
 def update_bp_log(id):
     data = request.get_json()
+    required = ['week_number', 'systolic', 'diastolic', 'time']
+    missing = [field for field in required if field not in data]
+
+    if missing:
+        raise MissingFieldError(missing)
+
+    fields = validate_bp_data(data)
+    if fields:
+        mode = current_app.config.get("ENV", "development")
+    
+        if mode == "production":
+        # Only generic message in prod
+            return jsonify({"error": "Invalid input data"}), 400
+        else:
+        # Detailed errors in dev
+            return jsonify({"error": "Invalid input data", "fields": fields}), 400
+
+    
    
    # Validate data types and ranges if provided
-    if 'week_number' in data and (not isinstance(data['week_number'], int) or data['week_number'] < 1):
-       return jsonify({"error": "Invalid week_number"}), 400
-    if 'systolic' in data and (not isinstance(data['systolic'], int) or data['systolic'] < 50 or data['systolic'] > 300):
-       return jsonify({"error": "Invalid systolic pressure"}), 400
-    if 'diastolic' in data and (not isinstance(data['diastolic'], int) or data['diastolic'] < 30 or data['diastolic'] > 200):
-       return jsonify({"error": "Invalid diastolic pressure"}), 400
+    # if 'week_number' in data and (not isinstance(data['week_number'], int) or data['week_number'] < 1):
+    #    return jsonify({"error": "Invalid week_number"}), 400
+    # if 'systolic' in data and (not isinstance(data['systolic'], int) or data['systolic'] < 50 or data['systolic'] > 300):
+    #    return jsonify({"error": "Invalid systolic pressure"}), 400
+    # if 'diastolic' in data and (not isinstance(data['diastolic'], int) or data['diastolic'] < 30 or data['diastolic'] > 200):
+    #    return jsonify({"error": "Invalid diastolic pressure"}), 400
    
     db = open_db()
     entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
 
     if not entry:
-        return jsonify({"error": "Entry not found"}), 404
+        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
 
     db.execute(
         '''UPDATE blood_pressure_logs SET week_number=?, systolic=?, diastolic=?, time=?, note=? WHERE id=?''',
@@ -88,7 +107,7 @@ def update_bp_log(id):
             data.get('systolic', entry['systolic']),
             data.get('diastolic', entry['diastolic']),
             data.get('time', entry['time']),
-            data.get('note', entry['note']),
+            data.get('note', entry.get('note')),
             id
         )
     )
@@ -107,7 +126,7 @@ def delete_bp_log(id):
     db = open_db()
     entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
     if not entry:
-        return jsonify({"error": "Entry not found"}), 404
+        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
 
     db.execute('DELETE FROM blood_pressure_logs WHERE id = ?', (id,))
     db.commit()
