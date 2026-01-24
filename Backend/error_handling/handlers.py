@@ -27,9 +27,6 @@ def handle_db_errors(f):
         except DatabaseError as e:
             response = create_error_response("Database Error", details=str(e))
             return jsonify(response), 500
-        except Exception as e:
-            response = create_error_response("Internal Server Error", "Something went very wrong. Try again later!", details=str(e))
-            return jsonify(response), 500
     return wrapper
 
 

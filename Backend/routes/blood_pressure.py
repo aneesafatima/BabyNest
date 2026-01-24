@@ -122,6 +122,7 @@ def update_bp_log(id):
 
 # Delete
 @bp_bp.route('/blood_pressure/<int:id>', methods=['DELETE'])
+@handle_db_errors
 def delete_bp_log(id):
     db = open_db()
     entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()

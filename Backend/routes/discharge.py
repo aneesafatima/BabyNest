@@ -2,10 +2,10 @@ from flask import Blueprint, request, jsonify
 from db.db import open_db
 import os
 import sys
-from agent.agent import get_agent
 from error_handling.error_classes import MissingFieldError, NotFoundError
 from error_handling.handlers import handle_db_errors
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from agent.agent import get_agent
 
 
 discharge_bp = Blueprint('discharge', __name__)

@@ -2,6 +2,7 @@ from db.db import open_db,close_db,first_time_setup
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 from routes.appointments import appointments_bp
 from routes.tasks import tasks_bp
 from routes.profile import profile_bp
@@ -36,8 +37,42 @@ app.register_blueprint(weight_bp)
 app.register_blueprint(bp_bp)
 app.register_blueprint(discharge_bp)
 
+# Register error handlers
+
 app.register_error_handler(MissingFieldError, handle_missing_field_error)
 app.register_error_handler(NotFoundError, handle_not_found_error)
+
+@app.errorhandler(Exception)
+def handle_generic_exception(e):
+    """Handle generic exceptions."""
+    mode = app.config.get('ENV', 'development')
+    if mode == 'development':
+        response = {"error": "Internal Server Error", "details": str(e)}
+    else:
+        response = {"error": "Something went very wrong. Try again later!"}
+    return jsonify(response), 500
+
+@app.errorhandler(BadRequest)
+def handle_bad_request(e):
+    mode = app.config.get('ENV', 'development')
+    if mode == 'development':
+        return jsonify({
+            "error": "Bad request",
+            "details": e.description
+        }), 400
+    else:
+        return jsonify({
+            "error": "Invalid request"
+        }), 400
+    
+@app.errorhandler(UnsupportedMediaType)
+# This handles cases where Content-Type is not application/json
+# This error is raised by the get_json() method of the request object
+def handle_unsupported_media(e):
+    return jsonify({
+        "error": "Content-Type must be application/json"
+    }), 415
+
 
 @app.teardown_appcontext
 def teardown_db(exception):
