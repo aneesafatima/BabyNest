@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from functools import wraps
 from db.db import open_db
 import os
@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agent.agent import get_agent
 from error_handling.handlers import handle_db_errors
 from error_handling.error_classes import MissingFieldError, NotFoundError
+from utils import validate_medicine_data
 
 medicine_bp = Blueprint('medicine', __name__)
 
@@ -34,20 +35,17 @@ def add_medicine():
     dose = data['dose']
     time = data['time']
     note = data.get('note')
+    fields = {}
 
     # Validate data types and ranges
-    try:
-       week = int(week)
-       if week < 1 or week > 52:
-           return jsonify({"error": "Week number must be between 1 and 52"}), 400
-    except (ValueError, TypeError):
-       return jsonify({"error": "Week number must be a valid integer"}), 400
-   
-    if not isinstance(name, str) or len(name.strip()) == 0:
-       return jsonify({"error": "Medicine name must be a non-empty string"}), 400
-   
-    if not isinstance(dose, str) or len(dose.strip()) == 0:
-       return jsonify({"error": "Dose must be a non-empty string"}), 400
+    mode = current_app.config.get("ENV", "development")
+    fields = validate_medicine_data(data)
+
+    if fields:
+        if mode == "production":
+            return jsonify({"error": "Invalid input values"}), 400
+        return jsonify({"error": "Invalid input values", "fields": fields}), 400
+
 
     db.execute(
         'INSERT INTO weekly_medicine (week_number, name, dose, time, note) VALUES (?, ?, ?, ?, ?)',
@@ -60,7 +58,7 @@ def add_medicine():
     agent = get_agent(db_path)
     agent.update_cache(data_type="medicine", operation="create")
 
-    return jsonify({"status": "success", "message": "Medicine added"}), 200
+    return jsonify({"status": "success", "message": "Medicine added"}), 201
 
 # Read all
 @medicine_bp.route('/get_medicine', methods=['GET'])

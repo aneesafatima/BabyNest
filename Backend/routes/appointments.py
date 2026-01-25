@@ -1,6 +1,5 @@
-import sqlite3
 from flask import Blueprint, jsonify, request
-from db.db import open_db, close_db
+from db.db import open_db
 from error_handling.handlers import handle_db_errors
 from error_handling.error_classes import MissingFieldError, NotFoundError
 
@@ -20,9 +19,6 @@ def get_appointments():
 @handle_db_errors
 def get_appointment(appointment_id):
     db = open_db()
-    if not appointment_id:
-        return jsonify({"error": "Appointment ID is required"}), 400
-    
     appointment = db.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,)).fetchone()
     if not appointment:
         raise NotFoundError(resource="Appointment entry", resource_id=appointment_id)
@@ -45,7 +41,7 @@ def add_appointment():
         (data["title"], data["content"], data["appointment_date"], data["appointment_time"], data["appointment_location"], 'pending')
     )
     db.commit()
-    return jsonify({"status": "success", "message": "Appointment added successfully"}), 200
+    return jsonify({"status": "success", "message": "Appointment added successfully"}), 201
 
 
 @appointments_bp.route('/update_appointment/<int:appointment_id>', methods=['PUT'])
@@ -64,7 +60,7 @@ def update_appointment(appointment_id):
     
     db.execute(
         'UPDATE appointments SET title = ?, content = ?, appointment_date = ?, appointment_time = ?, appointment_location = ?, appointment_status = ? WHERE id = ?',
-        (data["title"], data["content"], data["appointment_date"], data["appointment_time"], data["appointment_location"], data.get('appointment_status', 'pending'))
+        (data["title"], data["content"], data["appointment_date"], data["appointment_time"], data["appointment_location"], data.get('appointment_status', 'pending'), appointment_id)
     )
     db.commit()
     return jsonify({"status": "success", "message": "Appointment updated successfully"}), 200
@@ -74,9 +70,8 @@ def update_appointment(appointment_id):
 @handle_db_errors
 def delete_appointment(appointment_id):
     db = open_db()
-    existing_appointment = db.execute('SELECT * FROM appointments WHERE id = ?', (appointment_id,)).fetchone()
-    if not existing_appointment:
+    result = db.execute('DELETE FROM appointments WHERE id = ?', (appointment_id,))
+    if result.rowcount == 0:
         raise NotFoundError(resource="Appointment entry", resource_id=appointment_id)
-    db.execute('DELETE FROM appointments WHERE id = ?', (appointment_id,))
     db.commit()
     return jsonify({"status": "success", "message": "Appointment deleted successfully"}), 200

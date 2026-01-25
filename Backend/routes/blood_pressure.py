@@ -65,15 +65,27 @@ def get_bp_log(id):
 
 # Update
 @bp_bp.route('/blood_pressure/<int:id>', methods=['PUT'])
+@handle_db_errors
 def update_bp_log(id):
     data = request.get_json()
-    required = ['week_number', 'systolic', 'diastolic', 'time']
-    missing = [field for field in required if field not in data]
+   
+    db = open_db()
+    entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
 
-    if missing:
-        raise MissingFieldError(missing)
-
-    fields = validate_bp_data(data)
+    if not entry:
+        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
+    
+    week_number = data.get('week_number', entry['week_number'])
+    systolic = data.get('systolic', entry['systolic'])
+    diastolic = data.get('diastolic', entry['diastolic'])
+    fields = {}
+    
+    if any(k in data for k in ('week_number', 'systolic', 'diastolic')):
+        fields = validate_bp_data({
+            'week_number': week_number,
+            'systolic': systolic,
+            'diastolic': diastolic
+        })
     if fields:
         mode = current_app.config.get("ENV", "development")
     
@@ -83,22 +95,6 @@ def update_bp_log(id):
         else:
         # Detailed errors in dev
             return jsonify({"error": "Invalid input data", "fields": fields}), 400
-
-    
-   
-   # Validate data types and ranges if provided
-    # if 'week_number' in data and (not isinstance(data['week_number'], int) or data['week_number'] < 1):
-    #    return jsonify({"error": "Invalid week_number"}), 400
-    # if 'systolic' in data and (not isinstance(data['systolic'], int) or data['systolic'] < 50 or data['systolic'] > 300):
-    #    return jsonify({"error": "Invalid systolic pressure"}), 400
-    # if 'diastolic' in data and (not isinstance(data['diastolic'], int) or data['diastolic'] < 30 or data['diastolic'] > 200):
-    #    return jsonify({"error": "Invalid diastolic pressure"}), 400
-   
-    db = open_db()
-    entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
-
-    if not entry:
-        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
 
     db.execute(
         '''UPDATE blood_pressure_logs SET week_number=?, systolic=?, diastolic=?, time=?, note=? WHERE id=?''',
@@ -125,13 +121,11 @@ def update_bp_log(id):
 @handle_db_errors
 def delete_bp_log(id):
     db = open_db()
-    entry = db.execute('SELECT * FROM blood_pressure_logs WHERE id = ?', (id,)).fetchone()
-    if not entry:
-        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
 
-    db.execute('DELETE FROM blood_pressure_logs WHERE id = ?', (id,))
+    result = db.execute('DELETE FROM blood_pressure_logs WHERE id = ?', (id,))
+    if result.rowcount == 0:
+        raise NotFoundError(resource="Blood pressure entry", resource_id=id)
     db.commit()
-    
     # Update cache after database update
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "database.db")
     agent = get_agent(db_path)
