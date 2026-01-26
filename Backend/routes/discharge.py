@@ -64,7 +64,7 @@ def get_discharge_log(id):
     return jsonify(dict(entry)), 200
 
 # Update
-@discharge_bp.route('/discharge_log/<int:id>', methods=['PUT'])
+@discharge_bp.route('/discharge_log/<int:id>', methods=['PATCH'])
 @handle_db_errors
 def update_discharge_log(id):
     data = request.get_json()

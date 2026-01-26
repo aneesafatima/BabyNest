@@ -43,7 +43,7 @@ def add_task():
     return jsonify({"status": "success", "message": "Task added"}), 200
 
 
-@tasks_bp.route('/update_task/<int:task_id>', methods=['PUT'])
+@tasks_bp.route('/update_task/<int:task_id>', methods=['PATCH'])
 @handle_db_errors
 def update_task(task_id):
     db = open_db()

@@ -73,7 +73,7 @@ def get_weight(id):
     return jsonify(dict(weight)), 200   
 
 # Update by ID
-@weight_bp.route('/weight/<int:id>', methods=['PUT'])
+@weight_bp.route('/weight/<int:id>', methods=['PATCH'])
 @handle_db_errors
 def update_weight(id):
     db = open_db()

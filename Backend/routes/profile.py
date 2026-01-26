@@ -85,7 +85,7 @@ def delete_profile():
     return jsonify({"status": "success", "message": "Profile deleted successfully"}), 200
     
     
-@profile_bp.route('/update_profile', methods=['PUT'])
+@profile_bp.route('/update_profile', methods=['PATCH'])
 @handle_db_errors
 def update_profile():
     db = open_db()  

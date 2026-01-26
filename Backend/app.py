@@ -233,6 +233,7 @@ def index():
     return appointment_db
 
 if __name__ == '__main__':
-   app.run(host='0.0.0.0', port=5000, debug=True)
+   port = os.getenv("DEV_PORT", 5000) if app.config['ENV'] == 'development' else os.getenv("PROD_PORT", 8000)
+   app.run(host='0.0.0.0', port=port, debug=True)
 
    

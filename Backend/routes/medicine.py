@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agent.agent import get_agent
 from error_handling.handlers import handle_db_errors
 from error_handling.error_classes import MissingFieldError, NotFoundError
-from utils import validate_medicine_data
+from utils import validate_medicine_data, validate_week_number
 
 medicine_bp = Blueprint('medicine', __name__)
 
@@ -89,7 +89,7 @@ def get_medicine(id):
     return jsonify(dict(entry)), 200
 
 # Update by ID
-@medicine_bp.route('/medicine/<int:id>', methods=['PUT'])
+@medicine_bp.route('/medicine/<int:id>', methods=['PATCH'])
 @require_auth
 @handle_db_errors
 def update_medicine(id):
@@ -99,22 +99,15 @@ def update_medicine(id):
     
     if not entry:
         raise NotFoundError(resource="Medicine entry", resource_id=id)
-
-    # Validate week_number if provided
-    if 'week_number' in data:
-        try:
-            week = int(data['week_number'])
-            if week < 1 or week > 52:
-                return jsonify({"error": "Week number must be between 1 and 52"}), 400
-        except (ValueError, TypeError):
-            return jsonify({"error": "Week number must be a valid integer"}), 400
     
     # Validate other fields if provided
-    if 'name' in data and (not isinstance(data['name'], str) or len(data['name'].strip()) == 0):
-        return jsonify({"error": "Medicine name must be a non-empty string"}), 400
-    
-    if 'dose' in data and (not isinstance(data['dose'], str) or len(data['dose'].strip()) == 0):
-        return jsonify({"error": "Dose must be a non-empty string"}), 400
+    if 'name' in data or 'dose' in data or 'week_number' in data:
+        fields = validate_medicine_data(data)
+        if fields:
+            mode = current_app.config.get("ENV", "development")
+            if mode == "production":
+                return jsonify({"error": "Invalid input values"}), 400
+            return jsonify({"error": "Invalid input values", "fields": fields}), 400
 
     db.execute(
         '''UPDATE weekly_medicine SET week_number=?, name=?, dose=?, time=?, note=? WHERE id=?''',

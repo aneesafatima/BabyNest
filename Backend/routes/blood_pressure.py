@@ -21,6 +21,17 @@ def add_bp_log():
 
     if missing:
         raise MissingFieldError(missing)
+    
+    fields = validate_bp_data(data)
+    if fields:
+        mode = current_app.config.get("ENV", "development")
+    
+        if mode == "production":
+        # Only generic message in prod
+            return jsonify({"error": "Invalid input data"}), 400
+        else:
+        # Detailed errors in dev
+            return jsonify({"error": "Invalid input data", "fields": fields}), 400
 
     db = open_db()
     db.execute(
@@ -64,7 +75,7 @@ def get_bp_log(id):
     return jsonify(dict(entry)), 200
 
 # Update
-@bp_bp.route('/blood_pressure/<int:id>', methods=['PUT'])
+@bp_bp.route('/blood_pressure/<int:id>', methods=['PATCH'])
 @handle_db_errors
 def update_bp_log(id):
     data = request.get_json()
@@ -103,10 +114,10 @@ def update_bp_log(id):
             data.get('systolic', entry['systolic']),
             data.get('diastolic', entry['diastolic']),
             data.get('time', entry['time']),
-            data.get('note', entry.get('note')),
-            id
+            data.get('note', entry['note']),
+            id),
+            
         )
-    )
     db.commit()
     
     # Update cache after database update

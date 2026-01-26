@@ -16,16 +16,20 @@ def validate_bp_data(data):
 
 def validate_medicine_data(data):
     errors = {}
-
-    week_result = validate_week_number(data['week_number'])
+    week_number = data.get('week_number')
+    name = data.get('name')
+    dose = data.get('dose')
+    week_result = {"status": True}
+    if week_number is not None:
+        week_result = validate_week_number(week_number)
 
     if not week_result["status"]:
             errors["week_number"] = week_result["error"]
 
-    if not isinstance(data['name'], str) or len(data['name'].strip()) == 0:
+    if name and (not isinstance(data['name'], str) or len(data['name'].strip()) == 0):
             errors["name"] = "Medicine name must be a non-empty string."
 
-    if not isinstance(data['dose'], str) or len(data['dose'].strip()) == 0:
+    if dose and (isinstance(data['dose'], str) or len(data['dose'].strip()) == 0):
             errors["dose"] = "Dose must be a non-empty string."
     
     return errors

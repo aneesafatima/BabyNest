@@ -41,7 +41,7 @@ def get_all_symptoms():
     return jsonify([dict(row) for row in rows]), 200
 
 # Read by week
-@symptoms_bp.route('/symptoms/<int:week>', methods=['GET'])
+@symptoms_bp.route('/symptoms/week/<int:week>', methods=['GET'])
 @handle_db_errors
 def get_week_symptoms(week):
     db = open_db()
@@ -59,7 +59,7 @@ def get_symptom(id):
     return jsonify(dict(symptom)), 200
 
 # Update by ID
-@symptoms_bp.route('/symptoms/<int:id>', methods=['PUT'])
+@symptoms_bp.route('/symptoms/<int:id>', methods=['PATCH'])
 @handle_db_errors
 def update_symptom(id):
     db = open_db()
